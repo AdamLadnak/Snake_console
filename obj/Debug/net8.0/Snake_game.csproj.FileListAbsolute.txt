@@ -1,0 +1,14 @@
+C:\Users\ASUS\vscode_projects\Snake_game\bin\Debug\net8.0\Snake_game.exe
+C:\Users\ASUS\vscode_projects\Snake_game\bin\Debug\net8.0\Snake_game.deps.json
+C:\Users\ASUS\vscode_projects\Snake_game\bin\Debug\net8.0\Snake_game.runtimeconfig.json
+C:\Users\ASUS\vscode_projects\Snake_game\bin\Debug\net8.0\Snake_game.dll
+C:\Users\ASUS\vscode_projects\Snake_game\bin\Debug\net8.0\Snake_game.pdb
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\Snake_game.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\Snake_game.AssemblyInfoInputs.cache
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\Snake_game.AssemblyInfo.cs
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\Snake_game.csproj.CoreCompileInputs.cache
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\Snake_game.dll
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\refint\Snake_game.dll
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\Snake_game.pdb
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\Snake_game.genruntimeconfig.cache
+C:\Users\ASUS\vscode_projects\Snake_game\obj\Debug\net8.0\ref\Snake_game.dll

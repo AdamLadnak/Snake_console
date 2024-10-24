@@ -1,0 +1,215 @@
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Timers;
+
+class Program
+{
+    static int windowWidth = 30;
+    static int windowHeight = 20;
+    static int velkostBunky = 1;
+    static int snakeX, snakeY;
+    static int snakeDx = 0, snakeDy = 0;
+    static int jedloX, jedloY;
+    static List<(int, int)> chvost = new List<(int, int)>();
+    static bool koniecHry = true;
+    static System.Timers.Timer gameTimer;
+    static bool isTimerRunning = false;
+    static bool menuIsOpen = false;
+
+    static void Main()
+    {
+        Console.CursorVisible = false;
+        
+        while (true)
+        {
+            menu();
+            novaHra();
+
+            gameTimer = new System.Timers.Timer(100);
+            gameTimer.Elapsed += OnTimedEvent;
+            gameTimer.Start();
+            isTimerRunning = true;
+
+            while (!koniecHry)
+            {
+                var key = Console.ReadKey(true).Key;
+                OnKeyPress(key);
+            }
+        }
+    }
+
+    static void menu()
+    {
+        menuIsOpen = true;
+        Console.Clear();
+        nakresliOhranicenie();
+        
+        Console.SetCursorPosition(windowWidth / 2 - 3, windowHeight / 2 - 1);
+        Console.Write("1 PLAY");
+        Console.SetCursorPosition(windowWidth / 2 - 3, windowHeight / 2 + 1);
+        Console.Write("2 EXIT");
+        Console.SetCursorPosition(0, windowHeight + 1);
+
+        while (menuIsOpen)
+        {
+            var key = Console.ReadKey(true).Key;
+            if (key == ConsoleKey.NumPad1 || key == ConsoleKey.D1)
+            {
+                menuIsOpen = false;
+            }
+            else if (key == ConsoleKey.NumPad2 || key == ConsoleKey.D2)
+            {
+                Environment.Exit(0);
+            }
+        }
+    }
+    static void novaHra()
+    {
+        Console.Clear();
+        snakeX = windowWidth / 2;
+        snakeY = windowHeight / 2;
+        snakeDx = 0;
+        snakeDy = 0;
+        chvost.Clear();
+        nakresliOhranicenie();
+        nakresliJedlo();
+        koniecHry = false;
+    }
+
+    static void OnTimedEvent(Object source, ElapsedEventArgs e)
+    {
+        if (stavKoniecHry())
+        {
+            Console.SetCursorPosition(0, windowHeight + 2);
+            Console.WriteLine("GAME OVER");
+            Console.WriteLine($"Skóre: {chvost.Count}");
+            Console.WriteLine("Stlačte akúkoľvek klávesu pre návrat do menu...");
+            koniecHry = true;
+        }
+        if (koniecHry)
+        {
+            gameTimer.Stop();
+            isTimerRunning = false;
+            return;
+        }
+
+        chvost.Add((snakeX, snakeY));
+        snakeX += snakeDx;
+        snakeY += snakeDy;
+
+        if (snakeX == jedloX && snakeY == jedloY)
+        {
+            nakresliJedlo();
+        }
+        else if (chvost.Count > 0)
+        {
+            chvost.RemoveAt(0);
+        }
+
+        Console.Clear();
+        nakresliOhranicenie();
+        nakresliObjekt(jedloX, jedloY, "J");
+        foreach (var part in chvost)
+        {
+            nakresliObjekt(part.Item1, part.Item2, "O");
+        }
+        nakresliObjekt(snakeX, snakeY, "S");
+    }
+
+    static void nakresliJedlo()
+    {
+        Random rand = new Random();
+        do
+        {
+            jedloX = rand.Next(1, windowWidth - 1);
+            jedloY = rand.Next(1, windowHeight - 1);
+        } while (chvost.Contains((jedloX, jedloY)) || (jedloX == snakeX && jedloY == snakeY));
+    }
+
+    static void nakresliObjekt(int x, int y, string symbol)
+    {
+        Console.SetCursorPosition(x, y);
+        Console.Write(symbol);
+    }
+
+    static bool stavKoniecHry()
+    {
+        return snakeX <= 0 || snakeX >= windowWidth - 1 || snakeY <= 0 || snakeY >= windowHeight - 1 || chvost.Contains((snakeX, snakeY));
+    }
+
+    static void nakresliOhranicenie()
+    {
+        for (int x = 0; x < windowWidth; x++)
+        {
+            Console.SetCursorPosition(x, 0);
+            Console.Write("#");
+            Console.SetCursorPosition(x, windowHeight - 1);
+            Console.Write("#");
+        }
+
+        for (int y = 0; y < windowHeight; y++)
+        {
+            Console.SetCursorPosition(0, y);
+            Console.Write("#");
+            Console.SetCursorPosition(windowWidth - 1, y);
+            Console.Write("#");
+        }
+    }
+
+    static void ZobrazMenuPauzy()
+    {
+        Console.SetCursorPosition(0, windowHeight + 3);
+        Console.WriteLine("P - Resume");
+        Console.WriteLine("Q - Quit to Main Menu");
+    }
+
+    static void OnKeyPress(ConsoleKey key)
+    {
+        if (!koniecHry)
+        {
+            if (key == ConsoleKey.LeftArrow && snakeDx == 0)
+            {
+                snakeDx = -velkostBunky;
+                snakeDy = 0;
+            }
+            else if (key == ConsoleKey.RightArrow && snakeDx == 0)
+            {
+                snakeDx = velkostBunky;
+                snakeDy = 0;
+            }
+            else if (key == ConsoleKey.UpArrow && snakeDy == 0)
+            {
+                snakeDy = -velkostBunky;
+                snakeDx = 0;
+            }
+            else if (key == ConsoleKey.DownArrow && snakeDy == 0)
+            {
+                snakeDy = velkostBunky;
+                snakeDx = 0;
+            }
+            else if (key == ConsoleKey.P)
+            {
+                if (isTimerRunning)
+                {
+                    gameTimer.Stop();
+                    isTimerRunning = false;
+                    ZobrazMenuPauzy();
+                }
+                else
+                {
+                    gameTimer.Start();
+                    isTimerRunning = true;
+                }
+            }
+            else if (key == ConsoleKey.Q)
+            {
+                menu();
+            }
+        }
+        if (key == ConsoleKey.Escape && koniecHry)
+        {
+            Environment.Exit(0);
+        }
+    }
+}
