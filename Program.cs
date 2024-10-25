@@ -12,24 +12,35 @@ class Program
     static bool isTimerRunning = false;
     static bool menuIsOpen = false;
     static int skore = 0;
+    static Difficulty obtiaznost = Difficulty.Medium;
 
     static Snake snake;
     static Food jedlo;
+    static GameEnvironment herneProstredie;
+
+    enum Difficulty
+    {
+        Easy,
+        Medium,
+        Hard
+    }
 
     static void Main()
     {
         Console.CursorVisible = false;
+        herneProstredie = new GameEnvironment(windowWidth, windowHeight);
+
         while (true)
         {
-            menu();
+            hlavneMenu();
         }
     }
 
-    static void menu()
+    static void hlavneMenu()
     {
         menuIsOpen = true;
         Console.Clear();
-        nakresliOhranicenie();
+        herneProstredie.nakresliOhranicenie();
 
         Console.SetCursorPosition(windowWidth / 2 - 3, windowHeight / 2 - 1);
         Console.Write("1 PLAY");
@@ -43,11 +54,56 @@ class Program
             if (key == ConsoleKey.NumPad1 || key == ConsoleKey.D1)
             {
                 menuIsOpen = false;
-                novaHra();
+                vyberObtiaznost();
             }
             else if (key == ConsoleKey.NumPad2 || key == ConsoleKey.D2)
             {
                 Environment.Exit(0);
+            }
+        }
+    }
+
+    static void vyberObtiaznost()
+    {
+        menuIsOpen = true;
+        Console.Clear();
+        herneProstredie.nakresliOhranicenie();
+
+        Console.SetCursorPosition(windowWidth / 2 - 4, windowHeight / 2 - 2);
+        Console.Write("1 EASY");
+        Console.SetCursorPosition(windowWidth / 2 - 4, windowHeight / 2 - 1);
+        Console.Write("2 MEDIUM");
+        Console.SetCursorPosition(windowWidth / 2 - 4, windowHeight / 2);
+        Console.Write("3 HARD");
+        Console.SetCursorPosition(windowWidth / 2 - 4, windowHeight / 2 + 2);
+        Console.Write("4 BACK");
+        Console.SetCursorPosition(0, windowHeight + 1);
+
+        while (menuIsOpen)
+        {
+            var key = Console.ReadKey(true).Key;
+            if (key == ConsoleKey.NumPad1 || key == ConsoleKey.D1)
+            {
+                obtiaznost = Difficulty.Easy;
+                menuIsOpen = false;
+                novaHra();
+            }
+            else if (key == ConsoleKey.NumPad2 || key == ConsoleKey.D2)
+            {
+                obtiaznost = Difficulty.Medium;
+                menuIsOpen = false;
+                novaHra();
+            }
+            else if (key == ConsoleKey.NumPad3 || key == ConsoleKey.D3)
+            {
+                obtiaznost = Difficulty.Hard;
+                menuIsOpen = false;
+                novaHra();
+            }
+            else if (key == ConsoleKey.NumPad4 || key == ConsoleKey.D4)
+            {
+                menuIsOpen = false;
+                hlavneMenu();
             }
         }
     }
@@ -57,14 +113,14 @@ class Program
         Console.Clear();
         snake = new Snake(windowWidth / 2, windowHeight / 2);
         jedlo = new Food(windowWidth, windowHeight, snake);
-        nakresliOhranicenie();
+        herneProstredie.nakresliOhranicenie();
         jedlo.Nakresli();
         Console.SetCursorPosition(0, windowHeight + 1);
         Console.Write("Skóre: 0");
         koniecHry = false;
         skore = 0;
 
-        gameTimer = new System.Timers.Timer(100);
+        gameTimer = new System.Timers.Timer(GetGameSpeed());
         gameTimer.Elapsed += OnTimedEvent;
         gameTimer.Start();
         isTimerRunning = true;
@@ -73,7 +129,22 @@ class Program
         {
             var key = Console.ReadKey(true).Key;
             OnKeyPress(key);
-        }    
+        }
+    }
+
+    static int GetGameSpeed()
+    {
+        switch (obtiaznost)
+        {
+            case Difficulty.Easy:
+                return 150;
+            case Difficulty.Medium:
+                return 100;
+            case Difficulty.Hard:
+                return 50;
+            default:
+                return 100;
+        }
     }
 
     static void OnTimedEvent(Object source, ElapsedEventArgs e)
@@ -92,6 +163,7 @@ class Program
         }
 
         (int oldX, int oldY) = snake.Posun();
+        snake.ResetMove();
 
         Console.SetCursorPosition(oldX, oldY);
         Console.Write(" ");
@@ -119,24 +191,6 @@ class Program
         Console.Write("O");
     }
 
-    static void nakresliOhranicenie()
-    {
-        for (int x = 0; x < windowWidth; x++)
-        {
-            Console.SetCursorPosition(x, 0);
-            Console.Write("#");
-            Console.SetCursorPosition(x, windowHeight - 1);
-            Console.Write("#");
-        }
-
-        for (int y = 0; y < windowHeight; y++)
-        {
-            Console.SetCursorPosition(0, y);
-            Console.Write("#");
-            Console.SetCursorPosition(windowWidth - 1, y);
-            Console.Write("#");
-        }
-    }
 
     static void OnKeyPress(ConsoleKey key)
     {
@@ -171,6 +225,37 @@ class Program
     }
 }
 
+class GameEnvironment
+{
+    private int windowWidth;
+    private int windowHeight;
+
+    public GameEnvironment(int windowWidth, int windowHeight)
+    {
+        this.windowWidth = windowWidth;
+        this.windowHeight = windowHeight;
+    }
+
+    public void nakresliOhranicenie()
+    {
+        for (int x = 0; x < windowWidth; x++)
+        {
+            Console.SetCursorPosition(x, 0);
+            Console.Write("#");
+            Console.SetCursorPosition(x, windowHeight - 1);
+            Console.Write("#");
+        }
+
+        for (int y = 0; y < windowHeight; y++)
+        {
+            Console.SetCursorPosition(0, y);
+            Console.Write("#");
+            Console.SetCursorPosition(windowWidth - 1, y);
+            Console.Write("#");
+        }
+    }
+}
+
 class Snake
 {
     public int HlavaX { get; private set; }
@@ -178,6 +263,9 @@ class Snake
     public int Dx { get; private set; }
     public int Dy { get; private set; }
     public List<(int, int)> Chvost { get; private set; }
+    private bool hasMoved;
+    private int lastDx;
+    private int lastDy;
 
     public Snake(int startX, int startY)
     {
@@ -186,40 +274,68 @@ class Snake
         Dx = 0;
         Dy = 0;
         Chvost = new List<(int, int)>();
+        hasMoved = false;
+        lastDx = 0;
+        lastDy = 0;
     }
 
     public (int, int) Posun()
     {
         Chvost.Add((HlavaX, HlavaY));
-        int staryX = HlavaX;
-        int staryY = HlavaY;
+        int oldX = HlavaX;
+        int oldY = HlavaY;
+
         HlavaX += Dx;
         HlavaY += Dy;
-        return (staryX, staryY);
+
+        hasMoved = true;
+        return (oldX, oldY);
     }
 
     public void Ovladaj(ConsoleKey key, int velkostBunky)
     {
+        if (hasMoved)
+            return;
+
         if (key == ConsoleKey.LeftArrow && Dx == 0)
         {
-            Dx = -velkostBunky;
-            Dy = 0;
+            if (lastDx != velkostBunky)
+            {
+                Dx = -velkostBunky;
+                Dy = 0;
+            }
         }
         else if (key == ConsoleKey.RightArrow && Dx == 0)
         {
-            Dx = velkostBunky;
-            Dy = 0;
+            if (lastDx != -velkostBunky)
+            {
+                Dx = velkostBunky;
+                Dy = 0;
+            }
         }
         else if (key == ConsoleKey.UpArrow && Dy == 0)
         {
-            Dy = -velkostBunky;
-            Dx = 0;
+            if (lastDy != velkostBunky)
+            {
+                Dy = -velkostBunky;
+                Dx = 0;
+            }
         }
         else if (key == ConsoleKey.DownArrow && Dy == 0)
         {
-            Dy = velkostBunky;
-            Dx = 0;
+            if (lastDy != -velkostBunky)
+            {
+                Dy = velkostBunky;
+                Dx = 0;
+            }
         }
+    }
+
+    public void ResetMove()
+    {
+        hasMoved = false;
+        lastDx = Dx;
+        lastDy = Dy;
     }
 
     public bool StavKoniecHry(int windowWidth, int windowHeight)
